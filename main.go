@@ -9,9 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/ini.v1"
 	"gopkg.in/yaml.v3"
 )
 
@@ -137,49 +135,28 @@ func Strings2Interfaces(ss []string) []interface{} {
 	return ls
 }
 
-// LoadINI mapper ini
-func LoadINI(path string) (*ini.File, error) {
-	files, err := filepath.Glob(path)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Strings(files)
-
-	if len(files) == 0 {
-		return nil, errors.New("at least one ini")
-	}
-
-	ls := Strings2Interfaces(files)
-	cfg, err := ini.LoadSources(ini.LoadOptions{}, ls[0], ls[1:]...)
-	if err != nil {
-		return nil, errors.Wrap(err, "load ini sources")
-	}
-
-	return cfg, nil
-}
-
 type LangSection struct {
 	Section string
 	KVList  []string
 }
 
 func LoadLang(lang string) ([]*LangSection, error) {
-	f, err := LoadINI(filepath.Join(conf.From, lang+"*.ini"))
-	if err != nil {
-		return nil, err
+	fp := filepath.Join(conf.From, lang+".yaml")
+	data, _ := os.ReadFile(fp)
+	if len(data) == 0 {
+		return nil, fmt.Errorf("no data in %s", fp)
+	}
+
+	m := make(map[string]map[string]string, 0)
+	if err := yaml.Unmarshal([]byte(data), &m); err != nil {
+		log.Fatalf("parse yaml error: %v", err)
 	}
 
 	sKeys := make([]string, 0)
-	secs := f.Sections()
-	for _, sec := range secs {
-		if sec.Name() == "DEFAULT" {
-			continue
-		}
-
-		sKeys = append(sKeys, sec.Name())
+	for k := range m {
+		sKeys = append(sKeys, k)
 	}
-	if len(secs) == 0 {
+	if len(sKeys) == 0 {
 		return nil, fmt.Errorf("no setction in %s", lang)
 	}
 	sort.Strings(sKeys)
@@ -192,17 +169,13 @@ func LoadLang(lang string) ([]*LangSection, error) {
 
 		vKeys := make([]string, 0)
 
-		sec, _ := f.GetSection(sk)
-		sks := sec.Keys()
-		for _, sk := range sks {
-			vKeys = append(vKeys, sk.Name())
+		for sk := range m[sk] {
+			vKeys = append(vKeys, sk)
 		}
 		sort.Strings(vKeys)
 
 		for _, key := range vKeys {
-			tmp, _ := sec.GetKey(key)
-			fmt.Printf("%+v\n", *tmp)
-			rSec.KVList = append(rSec.KVList, key, "`"+tmp.String()+"`")
+			rSec.KVList = append(rSec.KVList, key, "`"+m[sk][key]+"`")
 		}
 
 		rLang = append(rLang, rSec)
