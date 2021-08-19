@@ -27,15 +27,15 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&conf.Nav, "nav", "etc/nav.yaml", "nav to load lan files")
 	rootCmd.PersistentFlags().StringVar(&conf.From, "from", "etc", "store lan files")
+	rootCmd.PersistentFlags().StringVar(&conf.Nav, "nav", "nav.yaml", "nav to load lan files")
 	rootCmd.PersistentFlags().StringVar(&conf.To, "to", "internal/i18n", "store generated go files")
 }
 
 func rootRun(cmd *cobra.Command, args []string) {
 	var langs []string
 
-	data, _ := os.ReadFile(conf.Nav)
+	data, _ := os.ReadFile(filepath.Join(conf.From, conf.Nav))
 	if err := yaml.Unmarshal([]byte(data), &langs); err != nil {
 		log.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func LoadLang(lang string) ([]*LangSection, error) {
 
 	m := make(map[string]map[string]string, 0)
 	if err := yaml.Unmarshal([]byte(data), &m); err != nil {
-		log.Fatalf("parse yaml error: %v", err)
+		log.Fatalf("parse yaml(%s) error: %v", fp, err)
 	}
 
 	sKeys := make([]string, 0)

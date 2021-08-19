@@ -2,35 +2,29 @@ package main
 
 import "text/template"
 
-// var (
-// 	Node = struct {
-// 		Name map[string]string
-// 	}{
-// 		Name: map[string]string{
-// 			"a": "b",
-// 		},
-// 	}
-// )
-
-// func a() {
-// 	fmt.Println(Node.Name)
-// }
-
 var (
 	i18nTmpl = `package {{.Package}}
+
+import (
+	"github.com/meilihao/goi18n/v2"
+)
 
 var (
 	{{- range .Structs}}
 	{{.Name}} = struct {
 		{{- range .Fileds}}
-		{{.Name}} map[string]string
+		{{.Name}} *goi18n.Elem
 		{{- end}}
 	}{
+		{{ $parent := . }}
 		{{- range .Fileds}}
-		{{.Name}}: map[string]string{
-			{{- range .Lists}}
-			"{{.K}}":{{.V}},
-			{{- end}}
+		{{.Name}}: &goi18n.Elem{
+			Key: "{{$parent.Name}}.{{.Name}}",
+			Map: map[string]string{
+				{{- range .Lists}}
+				"{{.K}}":{{.V}},
+				{{- end}}
+			},
 		},
 		{{- end}}
 	}
