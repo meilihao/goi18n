@@ -1,6 +1,6 @@
 # readme
 
-## run
+## install tool
 ```bash
 go install github.com/meilihao/goi18n/cmd/goi18n/v2@yaml
 ```
