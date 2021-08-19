@@ -2,9 +2,7 @@
 
 ## run
 ```bash
-cd cmd
-go build -o goi18n main.go tmpl.go
-mv goi18n $GOPATH/bin
+go install github.com/meilihao/goi18n/cmd/goi18n/v2@yaml
 ```
 
 ## test
@@ -12,3 +10,6 @@ mv goi18n $GOPATH/bin
 cd examples
 goi18n --from etc --nav=etc/nav.yaml --to internal/i18n
 ```
+
+## other
+- `branch main`(use `ini`) is deprecated.
