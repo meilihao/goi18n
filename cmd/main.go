@@ -28,14 +28,14 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&conf.From, "from", "etc", "store lan files")
-	rootCmd.PersistentFlags().StringVar(&conf.Nav, "nav", "nav.yaml", "nav to load lan files")
+	rootCmd.PersistentFlags().StringVar(&conf.Nav, "nav", "etc/nav.yaml", "nav to load lan files")
 	rootCmd.PersistentFlags().StringVar(&conf.To, "to", "internal/i18n", "store generated go files")
 }
 
 func rootRun(cmd *cobra.Command, args []string) {
 	var langs []string
 
-	data, _ := os.ReadFile(filepath.Join(conf.From, conf.Nav))
+	data, _ := os.ReadFile(conf.Nav)
 	if err := yaml.Unmarshal([]byte(data), &langs); err != nil {
 		log.Fatal(err)
 	}
@@ -51,6 +51,11 @@ func rootRun(cmd *cobra.Command, args []string) {
 			log.Fatalf("failed to load lang(%s): %v", lang, err)
 		}
 		rLangs[lang] = rLang
+	}
+
+	var err error
+	if conf.To, err = filepath.Abs(conf.To); err != nil {
+		log.Fatalf(`can't get abs path from arg "--to": %v`, err)
 	}
 
 	tData := &TmplData{
