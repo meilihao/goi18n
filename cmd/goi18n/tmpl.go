@@ -17,7 +17,7 @@ var (
 		{{- end}}
 	}{
 		{{ $parent := . }}
-		{{- range .Fileds}}
+		{{- range .Fileds -}}
 		{{.Name}}: &goi18n.Elem{
 			Key: "{{$parent.Name}}.{{.Name}}",
 			Map: map[string]string{
@@ -29,7 +29,21 @@ var (
 		{{- end}}
 	}
 
-	{{- end}}
+	{{end}}
+)
+
+var (
+	Mapper = map[string]string{
+		{{range .Structs}}
+		{{ $root := . }}
+		{{range .Fileds}}
+		{{ $parent := . }}
+		{{range .Lists}}
+		"{{$root.Name}}.{{$parent.Name}}_{{.K}}": {{.V}},
+		{{- end}}
+		{{- end}}
+		{{- end}}
+	}
 )
 `
 
